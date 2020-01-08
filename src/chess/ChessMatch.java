@@ -88,6 +88,11 @@ public class ChessMatch {
 			throw new ChessException("You can't put yourself in check");
 		}
 		
+		if (testCheckCastling(source, target, currentPlayer)) {
+			undoMove(source, target, capturedPiece);
+			throw new ChessException("You can't castle when the king pass through a square that is attacked");
+		}
+		
 		ChessPiece movedPiece = (ChessPiece) board.piece(target);
 		
 		// special move promotion
@@ -280,6 +285,33 @@ public class ChessMatch {
 				return true;
 			}
 		}
+		return false;
+	}
+	
+	private boolean testCheckCastling(Position source, Position target, Color color) {
+		ChessPiece p = (ChessPiece) board.piece(target);
+		// test kingside
+		if (p instanceof King && target.getColumn() == source.getColumn() + 2) {
+			List<Piece> opponentPieces = piecesOnTheBoard.stream().filter(x -> ((ChessPiece)x).getColor() == opponent(color)).collect(Collectors.toList());
+			for (Piece piece : opponentPieces) {
+				boolean[][] mat = piece.possibleMoves();
+				if (mat[target.getRow()][source.getColumn() + 1]) {
+					return true;
+				}
+			}
+		}
+		
+		// test queenside
+		if (p instanceof King && target.getColumn() == source.getColumn() - 2) {
+			List<Piece> opponentPieces = piecesOnTheBoard.stream().filter(x -> ((ChessPiece)x).getColor() == opponent(color)).collect(Collectors.toList());
+			for (Piece piece : opponentPieces) {
+				boolean[][] mat = piece.possibleMoves();
+				if (mat[target.getRow()][source.getColumn() - 1]) {
+					return true;
+				}
+			}
+		}
+		
 		return false;
 	}
 	
